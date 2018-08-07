@@ -1,16 +1,31 @@
 let restaurants,
   neighborhoods,
   cuisines
-var newMap
+var map
 var markers = []
+
 
 /**
  * Fetch neighborhoods and cuisines as soon as the page is loaded.
  */
 document.addEventListener('DOMContentLoaded', (event) => {
-  registerServiceWorker();
   fetchNeighborhoods();
   fetchCuisines();
+  const app_status_div = document.getElementById('app_status');
+  console.log('status loaded');
+    function updateOnlineStatus(event) {
+      if (!navigator.onLine) {
+        app_status_div.innerHTML = 'Offline version';
+      } else {
+        app_status_div.innerHTML = null;
+
+      }
+
+      console.log('online: ', navigator.onLine);
+    }
+
+  window.addEventListener('online',  updateOnlineStatus);
+  window.addEventListener('offline', updateOnlineStatus);
 });
 
 /**
@@ -117,9 +132,7 @@ resetRestaurants = (restaurants) => {
   ul.innerHTML = '';
 
   // Remove all map markers
-  if (self.markers) {
-    self.markers.forEach(marker => marker.remove());
-  }
+  self.markers.forEach(m => m.setMap(null));
   self.markers = [];
   self.restaurants = restaurants;
 }
@@ -141,18 +154,31 @@ fillRestaurantsHTML = (restaurants = self.restaurants) => {
 createRestaurantHTML = (restaurant) => {
   const li = document.createElement('li');
 
+  const name_label = document.createElement('h2');
+  name_label.innerHTML = 'Restaurant name'
+
+  li.append(name_label);
+
+  const name = document.createElement('h1');
+  name.innerHTML =  restaurant.name;
+  li.append(name);
+
   const image = document.createElement('img');
   image.className = 'restaurant-img';
+  image.alt = 'An image of the restaurant ' + restaurant.name;
   image.src = DBHelper.imageUrlForRestaurant(restaurant);
   li.append(image);
 
-  const name = document.createElement('h1');
-  name.innerHTML = restaurant.name;
-  li.append(name);
+  const address_label = document.createElement('div');
+  address_label.innerHTML = 'Restaurant address';
+  address_label.id = 'restaurant_adr';
+  li.append(address_label);
 
   const neighborhood = document.createElement('p');
   neighborhood.innerHTML = restaurant.neighborhood;
   li.append(neighborhood);
+
+
 
   const address = document.createElement('p');
   address.innerHTML = restaurant.address;
@@ -160,6 +186,7 @@ createRestaurantHTML = (restaurant) => {
 
   const more = document.createElement('a');
   more.innerHTML = 'View Details';
+  more.setAttribute("role", "button");
   more.href = DBHelper.urlForRestaurant(restaurant);
   li.append(more)
 
@@ -172,22 +199,10 @@ createRestaurantHTML = (restaurant) => {
 addMarkersToMap = (restaurants = self.restaurants) => {
   restaurants.forEach(restaurant => {
     // Add marker to the map
-    const marker = DBHelper.mapMarkerForRestaurant(restaurant, self.newMap);
-    marker.on("click", onClick);
-    function onClick() {
-      window.location.href = marker.options.url;
-    }
+    const marker = DBHelper.mapMarkerForRestaurant(restaurant, self.map);
+    google.maps.event.addListener(marker, 'click', () => {
+      window.location.href = marker.url
+    });
     self.markers.push(marker);
   });
-
-} 
-
-registerServiceWorker = () => {
-  if (!navigator.serviceWorker) return;
-
-  navigator.serviceWorker.register('/sw.js').then(() => {
-    console.log('Service worker registered!')
-  }).catch(() => {
-    console.log('Failed to register service worker.')
-  })
 }

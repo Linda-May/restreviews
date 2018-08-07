@@ -1,8 +1,8 @@
 let restaurant;
-var newMap;
+var map;
 
 /**
- * Initialize Google map from HTML
+ * Initialize Google map, called from HTML.
  */
 window.initMap = () => {
   fetchRestaurantFromURL((error, restaurant) => {
@@ -58,6 +58,7 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   const image = document.getElementById('restaurant-img');
   image.className = 'restaurant-img'
   image.src = DBHelper.imageUrlForRestaurant(restaurant);
+  image.alt = 'An image of the restaurant ' + restaurant.name;
 
   const cuisine = document.getElementById('restaurant-cuisine');
   cuisine.innerHTML = restaurant.cuisine_type;
@@ -96,7 +97,6 @@ fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => 
 fillReviewsHTML = (reviews = self.restaurant.reviews) => {
   const container = document.getElementById('reviews-container');
   const title = document.createElement('h2');
-  title.setAttribute('tabindex' , "0") ;
   title.innerHTML = 'Reviews';
   container.appendChild(title);
 
@@ -118,13 +118,12 @@ fillReviewsHTML = (reviews = self.restaurant.reviews) => {
  */
 createReviewHTML = (review) => {
   const li = document.createElement('li');
-  li.setAttribute('tabindex' , "0") ;
   const name = document.createElement('p');
-  name.innerHTML = review.name;
+  name.innerHTML = `Author: ${review.name}`;
   li.appendChild(name);
 
   const date = document.createElement('p');
-  date.innerHTML = review.date;
+  date.innerHTML = `Date: ${review.date}`;
   li.appendChild(date);
 
   const rating = document.createElement('p');
@@ -132,7 +131,7 @@ createReviewHTML = (review) => {
   li.appendChild(rating);
 
   const comments = document.createElement('p');
-  comments.innerHTML = review.comments;
+  comments.innerHTML = `Comment: ${review.comments}`;
   li.appendChild(comments);
 
   return li;
@@ -144,9 +143,9 @@ createReviewHTML = (review) => {
 fillBreadcrumb = (restaurant=self.restaurant) => {
   const breadcrumb = document.getElementById('breadcrumb');
   const li = document.createElement('li');
-  `<a href="">`+restaurant.name+`</a>`;
- // li.innerHTML = restaurant.name;
-  li.innerHTML = `<a href="">`+restaurant.name+`</a>`;
+  li.innerHTML = restaurant.name;
+  console.log('creating aria current');
+  li.setAttribute("aria-current", "page");
   breadcrumb.appendChild(li);
 }
 
